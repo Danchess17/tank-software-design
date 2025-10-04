@@ -35,7 +35,6 @@ public class TankModel {
     }
 
     public void update(float deltaTime, TileMovement tileMovement) {
-        //tileMovement.moveRectangleBetweenTileCenters(rectangle, position, destination, movementProgress);
         movementProgress = continueProgress(movementProgress, deltaTime, MOVEMENT_SPEED);
         if (isMovementCompleted()) position.set(destination);
     }

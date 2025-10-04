@@ -42,6 +42,8 @@ public class GameDesktopLauncher implements ApplicationListener {
     private ObstacleModel treeModel;
     private ObstacleView treeView;
 
+    private InputHandler inputHandler;
+
     private void clearScreen() {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
         Gdx.gl.glClear(GL_COLOR_BUFFER_BIT);
@@ -56,6 +58,8 @@ public class GameDesktopLauncher implements ApplicationListener {
         levelRenderer = createSingleLayerMapRenderer(level, batch);
         TiledMapTileLayer groundLayer = getSingleLayer(level);
         tileMovement = new TileMovement(groundLayer, Interpolation.smooth);
+
+        inputHandler = new InputHandler();
 
         // Texture decodes an image file and loads it into GPU memory, it represents a native resource
         playerTexture = new Texture("images/tank_blue.png");
@@ -78,14 +82,7 @@ public class GameDesktopLauncher implements ApplicationListener {
 
         // check if the player has finished the previous movement
         if (playerModel.isMovementCompleted()) {
-            Direction direction = null;
-
-            if (Gdx.input.isKeyPressed(UP) || Gdx.input.isKeyPressed(W)) direction = Direction.UP;
-            else if (Gdx.input.isKeyPressed(LEFT) || Gdx.input.isKeyPressed(A)) direction = Direction.LEFT;
-            else if (Gdx.input.isKeyPressed(DOWN) || Gdx.input.isKeyPressed(S)) direction = Direction.DOWN;
-            else if (Gdx.input.isKeyPressed(RIGHT) || Gdx.input.isKeyPressed(D)) direction = Direction.RIGHT;
-
-            // if direction is selected — attempt to move
+            Direction direction = inputHandler.chooseDirection();
             if (direction != null) playerModel.tryMove(direction, treeModel.getPosition());
             
         }

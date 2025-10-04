@@ -2,7 +2,6 @@ package ru.mipt.bit.platformer.util.models;
 
 import com.badlogic.gdx.math.GridPoint2;
 
-
 public class ObstacleModel {
     private final GridPoint2 position;
 
@@ -11,5 +10,4 @@ public class ObstacleModel {
     }
     
     public GridPoint2 getPosition() { return position; }
-
 }
