@@ -27,7 +27,7 @@ public class TankView {
         tileMovement.moveRectangleBetweenTileCenters(
             rectangle, tankModel.getPosition(), tankModel.getDestination(), tankModel.getMovementProgress()
         );
-        tankModel.update(deltaTime, tileMovement);
+        tankModel.update(deltaTime);
     }
 
     public void render(Batch batch) {

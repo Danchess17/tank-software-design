@@ -3,7 +3,6 @@ package ru.mipt.bit.platformer.util.models;
 import com.badlogic.gdx.math.GridPoint2;
 
 import ru.mipt.bit.platformer.util.Direction;
-import ru.mipt.bit.platformer.util.TileMovement;
 
 import static ru.mipt.bit.platformer.util.GdxGameUtils.continueProgress;
 import static com.badlogic.gdx.math.MathUtils.isEqual;
@@ -34,7 +33,7 @@ public class TankModel {
         movementProgress = 0f;
     }
 
-    public void update(float deltaTime, TileMovement tileMovement) {
+    public void update(float deltaTime) {
         movementProgress = continueProgress(movementProgress, deltaTime, MOVEMENT_SPEED);
         if (isMovementCompleted()) position.set(destination);
     }
