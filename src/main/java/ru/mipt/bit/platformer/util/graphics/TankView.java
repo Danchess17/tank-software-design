@@ -12,12 +12,14 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 
-public class TankView {
+public class TankView implements Renderable {
+    private final Texture texture;
     private TextureRegion textureRegion;
     private Rectangle rectangle;
     private TankModel tankModel;
 
     public TankView(TankModel tankModel, Texture texture) {
+        this.texture = texture;
         this.textureRegion = new TextureRegion(texture);
         this.rectangle = createBoundingRectangle(textureRegion);
         this.tankModel = tankModel;
@@ -30,11 +32,15 @@ public class TankView {
         tankModel.update(deltaTime);
     }
 
+    @Override
     public void render(Batch batch) {
         drawTextureRegionUnscaled(batch, textureRegion, rectangle, tankModel.getRotation());
     }
 
-    public TextureRegion getRegion() { return textureRegion; }
-    public Rectangle getRectangle() { return rectangle; }
+    @Override
+    public Rectangle getBounds() { return rectangle; }
+
+    @Override
+    public Texture getTexture() { return texture; }
 
 }

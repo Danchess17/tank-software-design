@@ -18,7 +18,7 @@ public class TankModelTest {
     @Test
     public void testTryMoveWithObstacle() {
         TankModel tank = new TankModel(new GridPoint2(1, 1));
-        GridPoint2 obstacle = new GridPoint2(1, 2);
+        ObstacleModel obstacle = new ObstacleModel(new GridPoint2(1, 2));
 
         tank.tryMove(Direction.UP, obstacle);
         assertTrue(tank.isMovementCompleted());
@@ -28,7 +28,7 @@ public class TankModelTest {
     @Test
     public void testTryMoveWithoutObstacle() {
         TankModel tank = new TankModel(new GridPoint2(1, 1));
-        GridPoint2 obstacle = new GridPoint2(-1, -1);
+        ObstacleModel obstacle = new ObstacleModel(new GridPoint2(-1, -1));
 
         tank.tryMove(Direction.UP, obstacle);
         assertFalse(tank.isMovementCompleted());

@@ -13,21 +13,27 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
-public class ObstacleView {
+public class ObstacleView implements Renderable {
+    private final Texture texture;
     private final TextureRegion textureRegion;
     private final Rectangle rectangle;
 
 
     public ObstacleView(ObstacleModel obstacleModel, Texture texture, TiledMapTileLayer groundLayer) {
+        this.texture = texture;
         this.textureRegion = new TextureRegion(texture);
         this.rectangle = createBoundingRectangle(textureRegion);
         moveRectangleAtTileCenter(groundLayer, rectangle, obstacleModel.getPosition());
     }
 
+    @Override
     public void render(Batch batch) {
         drawTextureRegionUnscaled(batch, textureRegion, rectangle, 0);
     }
     
-    public TextureRegion getRegion() { return textureRegion; }
-    public Rectangle getRectangle() { return rectangle; }
+    @Override
+    public Rectangle getBounds() { return rectangle; }
+
+    @Override
+    public Texture getTexture() { return texture; }
 }

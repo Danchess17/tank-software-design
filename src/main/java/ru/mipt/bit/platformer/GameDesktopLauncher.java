@@ -14,8 +14,7 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Interpolation;
 import ru.mipt.bit.platformer.util.*;
-import ru.mipt.bit.platformer.util.graphics.ObstacleView;
-import ru.mipt.bit.platformer.util.graphics.TankView;
+import ru.mipt.bit.platformer.util.graphics.*;
 import ru.mipt.bit.platformer.util.models.ObstacleModel;
 import ru.mipt.bit.platformer.util.models.TankModel;
 
@@ -25,6 +24,7 @@ import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 public class GameDesktopLauncher implements ApplicationListener {
 
     private Batch batch;
+    private EntityRenderer entityRenderer;
 
     private TiledMap level;
     private MapRenderer levelRenderer;
@@ -48,6 +48,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     @Override
     public void create() {
         batch = new SpriteBatch();
+        entityRenderer = new EntityRenderer(batch);
 
         // load level tiles
         level = new TmxMapLoader().load("level.tmx");
@@ -79,7 +80,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         // check if the player has finished the previous movement
         if (playerModel.isMovementCompleted()) {
             Direction direction = inputHandler.chooseDirection();
-            if (direction != null) playerModel.tryMove(direction, treeModel.getPosition());
+            if (direction != null) playerModel.tryMove(direction, treeModel);
             
         }
 
@@ -88,17 +89,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         // render each tile of the level
         levelRenderer.render();
 
-        // start recording all drawing commands
-        batch.begin();
-
-        // render player
-        playerView.render(batch);
-
-        // render tree obstacle
-        treeView.render(batch);
-
-        // submit all drawing requests
-        batch.end();
+        entityRenderer.render(playerView, treeView);
     }
 
     @Override
@@ -121,8 +112,8 @@ public class GameDesktopLauncher implements ApplicationListener {
         // dispose of all the native resources (classes which implement com.badlogic.gdx.utils.Disposable)
         treeTexture.dispose();
         playerTexture.dispose();
-        level.dispose();
         batch.dispose();
+        level.dispose();
     }
 
     public static void main(String[] args) {
