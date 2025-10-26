@@ -11,12 +11,15 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Interpolation;
 import ru.mipt.bit.platformer.util.*;
 import ru.mipt.bit.platformer.util.graphics.*;
+import ru.mipt.bit.platformer.util.models.EntityManager;
+import ru.mipt.bit.platformer.util.models.LevelFromFileLoader;
 import ru.mipt.bit.platformer.util.models.ObstacleModel;
+import ru.mipt.bit.platformer.util.models.RandomGeneratorLoader;
 import ru.mipt.bit.platformer.util.models.TankModel;
+import java.util.Arrays;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
@@ -35,10 +38,14 @@ public class GameDesktopLauncher implements ApplicationListener {
     private TankView playerView;
 
     private Texture treeTexture;
-    private ObstacleModel treeModel;
-    private ObstacleView treeView;
+    private ObstacleModel[] treeModels;
+    private ObstacleView[] treeViews;
+
 
     private InputHandler inputHandler;
+
+    // private RandomGeneratorLoader loader;
+    private LevelFromFileLoader loader;
 
     private void clearScreen() {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
@@ -58,16 +65,22 @@ public class GameDesktopLauncher implements ApplicationListener {
 
         inputHandler = new InputHandler();
 
+        // loader = new RandomGeneratorLoader(10, 8, 7);
+        loader  = new LevelFromFileLoader();
+        EntityManager entityManager = loader.load("entities_map.txt");
+
         // Texture decodes an image file and loads it into GPU memory, it represents a native resource
         playerTexture = new Texture("images/tank_blue.png");
-        playerModel = new TankModel(new GridPoint2(1, 1));
+        playerModel = entityManager.getTanks().get(0);
         playerView = new TankView(playerModel, playerTexture);
 
 
         treeTexture = new Texture("images/greenTree.png");
-        treeModel = new ObstacleModel(new GridPoint2(1, 3));
-        treeView = new ObstacleView(treeModel, treeTexture, groundLayer);
-        
+        treeModels = entityManager.getObstacles().toArray(ObstacleModel[]::new);
+        treeViews = Arrays.stream(treeModels)
+        .map(treeModel -> new ObstacleView(treeModel, treeTexture, groundLayer))
+        .toArray(ObstacleView[]::new);
+
     }
 
     @Override
@@ -80,7 +93,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         // check if the player has finished the previous movement
         if (playerModel.isMovementCompleted()) {
             Direction direction = inputHandler.chooseDirection();
-            if (direction != null) playerModel.tryMove(direction, treeModel);
+            if (direction != null) playerModel.tryMove(direction, treeModels);
             
         }
 
@@ -89,7 +102,10 @@ public class GameDesktopLauncher implements ApplicationListener {
         // render each tile of the level
         levelRenderer.render();
 
-        entityRenderer.render(playerView, treeView);
+        Renderable[] renderables = new Renderable[treeViews.length + 1];
+        renderables[0] = playerView;
+        System.arraycopy(treeViews, 0, renderables, 1, treeViews.length);
+        entityRenderer.render(renderables);
     }
 
     @Override
