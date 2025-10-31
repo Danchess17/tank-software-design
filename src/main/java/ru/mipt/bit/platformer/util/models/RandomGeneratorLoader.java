@@ -10,11 +10,20 @@ public class RandomGeneratorLoader implements MapLoader {
     private final int levelWidth;
     private final int levelHeight;
     private final int obstacleCount;
+    private final int aiTankCount;
     
     public RandomGeneratorLoader(int levelWidth, int levelHeight, int obstacleCount) {
         this.levelWidth = levelWidth;
         this.levelHeight = levelHeight;
         this.obstacleCount = obstacleCount;
+        this.aiTankCount = 0;
+    }
+
+    public RandomGeneratorLoader(int levelWidth, int levelHeight, int obstacleCount, int aiTankCount) {
+        this.levelWidth = levelWidth;
+        this.levelHeight = levelHeight;
+        this.obstacleCount = obstacleCount;
+        this.aiTankCount = aiTankCount;
     }
     
     @Override
@@ -28,6 +37,11 @@ public class RandomGeneratorLoader implements MapLoader {
         
         GridPoint2 playerPos = getRandomFreePosition(entities);
         entities.add(new TankModel(playerPos));
+
+        for (int i = 0; i < aiTankCount; i++) {
+            GridPoint2 aiPos = getRandomFreePosition(entities);
+            entities.add(new TankModel(aiPos));
+        }
         
         return new EntityManager(entities.toArray(GameEntity[]::new));
     }

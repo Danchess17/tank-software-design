@@ -19,6 +19,12 @@ import ru.mipt.bit.platformer.util.models.LevelFromFileLoader;
 import ru.mipt.bit.platformer.util.models.ObstacleModel;
 import ru.mipt.bit.platformer.util.models.RandomGeneratorLoader;
 import ru.mipt.bit.platformer.util.models.TankModel;
+import ru.mipt.bit.platformer.util.models.GameEntity;
+import ru.mipt.bit.platformer.util.models.MovableGameEntity;
+import ru.mipt.bit.platformer.util.logic.Bounds;
+import ru.mipt.bit.platformer.util.logic.CollisionContext;
+import ru.mipt.bit.platformer.util.commands.MoveCommand;
+import ru.mipt.bit.platformer.util.ai.RandomAIController;
 import java.util.Arrays;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
@@ -37,6 +43,11 @@ public class GameDesktopLauncher implements ApplicationListener {
     private TankModel playerModel;
     private TankView playerView;
 
+    private Texture enemyTexture;
+    private TankModel[] enemyModels;
+    private TankView[] enemyViews;
+    private RandomAIController aiController;
+
     private Texture treeTexture;
     private ObstacleModel[] treeModels;
     private ObstacleView[] treeViews;
@@ -44,8 +55,10 @@ public class GameDesktopLauncher implements ApplicationListener {
 
     private InputHandler inputHandler;
 
-    // private RandomGeneratorLoader loader;
-    private LevelFromFileLoader loader;
+    private RandomGeneratorLoader loader;
+    //private LevelFromFileLoader loader;
+    private EntityManager entityManager;
+    private Bounds bounds;
 
     private void clearScreen() {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
@@ -64,10 +77,13 @@ public class GameDesktopLauncher implements ApplicationListener {
         tileMovement = new TileMovement(groundLayer, Interpolation.smooth);
 
         inputHandler = new InputHandler();
+        aiController = new RandomAIController();
 
-        // loader = new RandomGeneratorLoader(10, 8, 7);
-        loader  = new LevelFromFileLoader();
-        EntityManager entityManager = loader.load("entities_map.txt");
+        loader = new RandomGeneratorLoader(10, 8, 7, 3);
+        //loader  = new LevelFromFileLoader();
+        entityManager = loader.load("entities_map.txt");
+        
+        bounds = new Bounds(groundLayer.getWidth(), groundLayer.getHeight());
 
         // Texture decodes an image file and loads it into GPU memory, it represents a native resource
         playerTexture = new Texture("images/tank_blue.png");
@@ -81,6 +97,13 @@ public class GameDesktopLauncher implements ApplicationListener {
         .map(treeModel -> new ObstacleView(treeModel, treeTexture, groundLayer))
         .toArray(ObstacleView[]::new);
 
+        // setup enemies (all tanks except the first)
+        enemyTexture = new Texture("images/tank_blue.png");
+        enemyModels = entityManager.getTanks().stream().skip(1).toArray(TankModel[]::new);
+        enemyViews = Arrays.stream(enemyModels)
+        .map(enemyModel -> new TankView(enemyModel, enemyTexture)).
+        toArray(TankView[]::new);
+
     }
 
     @Override
@@ -90,21 +113,37 @@ public class GameDesktopLauncher implements ApplicationListener {
         // get time passed since the last render
         float deltaTime = Gdx.graphics.getDeltaTime();
 
-        // check if the player has finished the previous movement
+        // build collision context
+        GameEntity[] staticEntities = treeModels;
+        MovableGameEntity[] movers = entityManager.getMovableEntities();
+        CollisionContext collisionContext = new CollisionContext(Arrays.asList(staticEntities), Arrays.asList(movers));
+
+        // player command
         if (playerModel.isMovementCompleted()) {
             Direction direction = inputHandler.chooseDirection();
-            if (direction != null) playerModel.tryMove(direction, treeModels);
-            
+            new MoveCommand(playerModel, direction, bounds, collisionContext).execute();
+        }
+
+        // AI commands
+        for (TankModel enemyModel : enemyModels) {
+            if (enemyModel.isMovementCompleted()) {
+                Direction dir = aiController.chooseDirection();
+                new MoveCommand(enemyModel, dir, bounds, collisionContext).execute();
+            }
         }
 
         playerView.update(deltaTime, tileMovement);
+        for (TankView enemyView : enemyViews) {
+            enemyView.update(deltaTime, tileMovement);
+        }
 
         // render each tile of the level
         levelRenderer.render();
 
-        Renderable[] renderables = new Renderable[treeViews.length + 1];
+        Renderable[] renderables = new Renderable[treeViews.length + 1 + enemyViews.length];
         renderables[0] = playerView;
-        System.arraycopy(treeViews, 0, renderables, 1, treeViews.length);
+        System.arraycopy(enemyViews, 0, renderables, 1, enemyViews.length);
+        System.arraycopy(treeViews, 0, renderables, 1 + enemyViews.length, treeViews.length);
         entityRenderer.render(renderables);
     }
 
@@ -128,6 +167,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         // dispose of all the native resources (classes which implement com.badlogic.gdx.utils.Disposable)
         treeTexture.dispose();
         playerTexture.dispose();
+        if (enemyTexture != null) enemyTexture.dispose();
         batch.dispose();
         level.dispose();
     }
