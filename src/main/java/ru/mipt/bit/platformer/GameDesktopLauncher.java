@@ -24,6 +24,7 @@ import ru.mipt.bit.platformer.util.models.MovableGameEntity;
 import ru.mipt.bit.platformer.util.logic.Bounds;
 import ru.mipt.bit.platformer.util.logic.CollisionContext;
 import ru.mipt.bit.platformer.util.commands.MoveCommand;
+import ru.mipt.bit.platformer.util.commands.ToggleHealthBarCommand;
 import ru.mipt.bit.platformer.util.ai.RandomAIController;
 import java.util.Arrays;
 
@@ -42,18 +43,20 @@ public class GameDesktopLauncher implements ApplicationListener {
     private Texture playerTexture;
     private TankModel playerModel;
     private TankView playerView;
+    private HealthBarDecorator playerHealthDecorator;
 
     private Texture enemyTexture;
     private TankModel[] enemyModels;
     private TankView[] enemyViews;
+    private HealthBarDecorator[] enemyHealthDecorators;
     private RandomAIController aiController;
 
     private Texture treeTexture;
     private ObstacleModel[] treeModels;
     private ObstacleView[] treeViews;
 
-
     private InputHandler inputHandler;
+    private HealthBarRenderer healthBarRenderer;
 
     private RandomGeneratorLoader loader;
     //private LevelFromFileLoader loader;
@@ -78,6 +81,7 @@ public class GameDesktopLauncher implements ApplicationListener {
 
         inputHandler = new InputHandler();
         aiController = new RandomAIController();
+        healthBarRenderer = new HealthBarRenderer();
 
         loader = new RandomGeneratorLoader(10, 8, 7, 3);
         //loader  = new LevelFromFileLoader();
@@ -89,6 +93,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         playerTexture = new Texture("images/tank_blue.png");
         playerModel = entityManager.getTanks().get(0);
         playerView = new TankView(playerModel, playerTexture);
+        playerHealthDecorator = new HealthBarDecorator(playerView, playerModel, healthBarRenderer);
 
 
         treeTexture = new Texture("images/greenTree.png");
@@ -101,8 +106,12 @@ public class GameDesktopLauncher implements ApplicationListener {
         enemyTexture = new Texture("images/tank_blue.png");
         enemyModels = entityManager.getTanks().stream().skip(1).toArray(TankModel[]::new);
         enemyViews = Arrays.stream(enemyModels)
-        .map(enemyModel -> new TankView(enemyModel, enemyTexture)).
-        toArray(TankView[]::new);
+        .map(enemyModel -> new TankView(enemyModel, enemyTexture))
+        .toArray(TankView[]::new);
+        enemyHealthDecorators = new HealthBarDecorator[enemyViews.length];
+        for (int i = 0; i < enemyViews.length; i++) {
+            enemyHealthDecorators[i] = new HealthBarDecorator(enemyViews[i], enemyModels[i], healthBarRenderer);
+        }
 
     }
 
@@ -117,6 +126,14 @@ public class GameDesktopLauncher implements ApplicationListener {
         GameEntity[] staticEntities = treeModels;
         MovableGameEntity[] movers = entityManager.getMovableEntities();
         CollisionContext collisionContext = new CollisionContext(Arrays.asList(staticEntities), Arrays.asList(movers));
+
+        // toggle health bar command
+        if (inputHandler.isLKeyJustPressed()) {
+            HealthBarDecorator[] allDecorators = new HealthBarDecorator[1 + enemyHealthDecorators.length];
+            allDecorators[0] = playerHealthDecorator;
+            System.arraycopy(enemyHealthDecorators, 0, allDecorators, 1, enemyHealthDecorators.length);
+            new ToggleHealthBarCommand(allDecorators).execute();
+        }
 
         // player command
         if (playerModel.isMovementCompleted()) {
@@ -140,11 +157,23 @@ public class GameDesktopLauncher implements ApplicationListener {
         // render each tile of the level
         levelRenderer.render();
 
-        Renderable[] renderables = new Renderable[treeViews.length + 1 + enemyViews.length];
-        renderables[0] = playerView;
-        System.arraycopy(enemyViews, 0, renderables, 1, enemyViews.length);
-        System.arraycopy(treeViews, 0, renderables, 1 + enemyViews.length, treeViews.length);
+        // Render all entities (tanks and obstacles)
+        Renderable[] renderables = new Renderable[treeViews.length + 1 + enemyHealthDecorators.length];
+        renderables[0] = playerHealthDecorator;
+        System.arraycopy(enemyHealthDecorators, 0, renderables, 1, enemyHealthDecorators.length);
+        System.arraycopy(treeViews, 0, renderables, 1 + enemyHealthDecorators.length, treeViews.length);
         entityRenderer.render(renderables);
+        
+        // Render health bars on top of all entities (after obstacles)
+        if (playerHealthDecorator.isShowHealthBar() || 
+            Arrays.stream(enemyHealthDecorators).anyMatch(d -> d.isShowHealthBar())) {
+            batch.begin();
+            playerHealthDecorator.renderHealthBar(batch);
+            for (HealthBarDecorator enemyDecorator : enemyHealthDecorators) {
+                enemyDecorator.renderHealthBar(batch);
+            }
+            batch.end();
+        }
     }
 
     @Override
@@ -168,6 +197,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         treeTexture.dispose();
         playerTexture.dispose();
         if (enemyTexture != null) enemyTexture.dispose();
+        if (healthBarRenderer != null) healthBarRenderer.dispose();
         batch.dispose();
         level.dispose();
     }
