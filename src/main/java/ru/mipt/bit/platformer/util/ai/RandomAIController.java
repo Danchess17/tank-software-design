@@ -6,6 +6,7 @@ import ru.mipt.bit.platformer.util.Direction;
 
 public class RandomAIController {
     private final Random random;
+    private static final double SHOOT_PROBABILITY = 0.3; // 30% chance to shoot instead of move
 
     public RandomAIController() {
         this(new Random());
@@ -19,5 +20,10 @@ public class RandomAIController {
         Direction[] values = Direction.values();
         return values[random.nextInt(values.length)];
     }
+    
+    public boolean shouldShoot() {
+        return random.nextDouble() < SHOOT_PROBABILITY;
+    }
 }
+
 

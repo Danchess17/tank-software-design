@@ -5,6 +5,7 @@ import static com.badlogic.gdx.Input.Keys.*;
 
 public class InputHandler {
     private boolean lastLKeyState = false;
+    private boolean lastSpaceKeyState = false;
     
     public Direction chooseDirection() {
         if (Gdx.input.isKeyPressed(UP) || Gdx.input.isKeyPressed(W)) return Direction.UP;
@@ -23,4 +24,15 @@ public class InputHandler {
         lastLKeyState = currentState;
         return false;
     }
+    
+    public boolean isSpaceKeyJustPressed() {
+        boolean currentState = Gdx.input.isKeyPressed(SPACE);
+        if (currentState && !lastSpaceKeyState) {
+            lastSpaceKeyState = currentState;
+            return true;
+        }
+        lastSpaceKeyState = currentState;
+        return false;
+    }
+    
 }

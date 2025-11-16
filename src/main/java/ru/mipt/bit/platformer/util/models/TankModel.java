@@ -45,6 +45,14 @@ public class TankModel implements MovableGameEntity {
     public float getHealthPercentage() {
         return maxHealth > 0 ? (float) health / maxHealth : 0f;
     }
+    
+    public void takeDamage(int damage) {
+        health = Math.max(0, health - damage);
+    }
+    
+    public boolean isAlive() {
+        return health > 0;
+    }
 
     @Override
     public void tryMove(Direction direction, GameEntity ...entities) {

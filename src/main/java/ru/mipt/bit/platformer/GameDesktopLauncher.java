@@ -4,6 +4,8 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -24,9 +26,13 @@ import ru.mipt.bit.platformer.util.models.MovableGameEntity;
 import ru.mipt.bit.platformer.util.logic.Bounds;
 import ru.mipt.bit.platformer.util.logic.CollisionContext;
 import ru.mipt.bit.platformer.util.commands.MoveCommand;
+import ru.mipt.bit.platformer.util.commands.ShootCommand;
 import ru.mipt.bit.platformer.util.commands.ToggleHealthBarCommand;
 import ru.mipt.bit.platformer.util.ai.RandomAIController;
+import ru.mipt.bit.platformer.util.models.BulletModel;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
@@ -55,6 +61,10 @@ public class GameDesktopLauncher implements ApplicationListener {
     private ObstacleModel[] treeModels;
     private ObstacleView[] treeViews;
 
+    private Texture bulletTexture;
+    private List<BulletModel> bullets;
+    private List<BulletView> bulletViews;
+
     private InputHandler inputHandler;
     private HealthBarRenderer healthBarRenderer;
 
@@ -66,6 +76,29 @@ public class GameDesktopLauncher implements ApplicationListener {
     private void clearScreen() {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
         Gdx.gl.glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    private Texture createBulletTexture() {
+        int size = 24; // Bullet size - much smaller than tank (tank is ~128px)
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        
+        // Fill with transparent
+        pixmap.setColor(0, 0, 0, 0);
+        pixmap.fill();
+        
+        // Draw orange circle
+        Color orange = new Color(1.0f, 0.5f, 0.0f, 1.0f); // Bright orange
+        pixmap.setColor(orange);
+        pixmap.fillCircle(size / 2, size / 2, size / 2 - 2);
+        
+        // Add a brighter center for depth
+        Color lightOrange = new Color(1.0f, 0.7f, 0.2f, 1.0f);
+        pixmap.setColor(lightOrange);
+        pixmap.fillCircle(size / 2, size / 2, size / 3);
+        
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
     }
 
     @Override
@@ -113,6 +146,11 @@ public class GameDesktopLauncher implements ApplicationListener {
             enemyHealthDecorators[i] = new HealthBarDecorator(enemyViews[i], enemyModels[i], healthBarRenderer);
         }
 
+        // setup bullets - create orange circle texture
+        bulletTexture = createBulletTexture();
+        bullets = new ArrayList<>();
+        bulletViews = new ArrayList<>();
+
     }
 
     @Override
@@ -135,17 +173,28 @@ public class GameDesktopLauncher implements ApplicationListener {
             new ToggleHealthBarCommand(allDecorators).execute();
         }
 
-        // player command
-        if (playerModel.isMovementCompleted()) {
-            Direction direction = inputHandler.chooseDirection();
-            new MoveCommand(playerModel, direction, bounds, collisionContext).execute();
+        // player commands
+        if (playerModel.isMovementCompleted() && playerModel.isAlive()) {
+            // Check for shooting first
+            if (inputHandler.isSpaceKeyJustPressed()) {
+                new ShootCommand(playerModel, entityManager, bounds).execute();
+            } else {
+                Direction direction = inputHandler.chooseDirection();
+                if (direction != null) {
+                    new MoveCommand(playerModel, direction, bounds, collisionContext).execute();
+                }
+            }
         }
 
         // AI commands
         for (TankModel enemyModel : enemyModels) {
-            if (enemyModel.isMovementCompleted()) {
-                Direction dir = aiController.chooseDirection();
-                new MoveCommand(enemyModel, dir, bounds, collisionContext).execute();
+            if (enemyModel.isMovementCompleted() && enemyModel.isAlive()) {
+                if (aiController.shouldShoot()) {
+                    new ShootCommand(enemyModel, entityManager, bounds).execute();
+                } else {
+                    Direction dir = aiController.chooseDirection();
+                    new MoveCommand(enemyModel, dir, bounds, collisionContext).execute();
+                }
             }
         }
 
@@ -153,6 +202,9 @@ public class GameDesktopLauncher implements ApplicationListener {
         for (TankView enemyView : enemyViews) {
             enemyView.update(deltaTime, tileMovement);
         }
+
+        // Update bullets and handle collisions
+        updateBullets(deltaTime, collisionContext);
 
         // render each tile of the level
         levelRenderer.render();
@@ -164,6 +216,12 @@ public class GameDesktopLauncher implements ApplicationListener {
         System.arraycopy(treeViews, 0, renderables, 1 + enemyHealthDecorators.length, treeViews.length);
         entityRenderer.render(renderables);
         
+        // Render bullets
+        if (!bulletViews.isEmpty()) {
+            Renderable[] bulletRenderables = bulletViews.toArray(new Renderable[bulletViews.size()]);
+            entityRenderer.render(bulletRenderables);
+        }
+        
         // Render health bars on top of all entities (after obstacles)
         if (playerHealthDecorator.isShowHealthBar() || 
             Arrays.stream(enemyHealthDecorators).anyMatch(d -> d.isShowHealthBar())) {
@@ -173,6 +231,117 @@ public class GameDesktopLauncher implements ApplicationListener {
                 enemyDecorator.renderHealthBar(batch);
             }
             batch.end();
+        }
+    }
+
+    private void updateBullets(float deltaTime, CollisionContext collisionContext) {
+        // Get all bullets from entity manager
+        List<BulletModel> allBullets = entityManager.getEntitiesByType(BulletModel.class);
+        
+        // Remove destroyed bullets from entity manager
+        List<BulletModel> toRemove = new ArrayList<>();
+        for (BulletModel bullet : allBullets) {
+            if (bullet.isDestroyed()) {
+                toRemove.add(bullet);
+            }
+        }
+        for (BulletModel bullet : toRemove) {
+            entityManager.removeEntity(bullet);
+        }
+        
+        // Update active bullets list
+        bullets.clear();
+        for (BulletModel bullet : allBullets) {
+            if (!bullet.isDestroyed()) {
+                bullets.add(bullet);
+            }
+        }
+        
+        // Update bullets and check collisions before rendering
+        for (BulletModel bullet : bullets) {
+            // Update bullet movement
+            bullet.update(deltaTime);
+            
+            // Check if bullet needs to continue moving
+            if (bullet.isMovementCompleted() && !bullet.isDestroyed()) {
+                // Use tryMove to check collisions for next cell
+                GameEntity[] blockingEntities = collisionContext.buildBlockingEntities(bullet);
+                bullet.tryMove(bullet.getDirection(), blockingEntities);
+            }
+            
+            checkBulletCollisions(bullet, collisionContext);
+        }
+        
+        // Recreate views for all active bullets (simpler approach)
+        bulletViews.clear();
+        for (BulletModel bullet : bullets) {
+            if (!bullet.isDestroyed()) {
+                BulletView view = new BulletView(bullet, bulletTexture);
+                view.update(deltaTime, tileMovement);
+                bulletViews.add(view);
+            }
+        }
+    }
+
+    private void checkBulletCollisions(BulletModel bullet, CollisionContext collisionContext) {
+        if (bullet.isDestroyed()) return;
+        
+        com.badlogic.gdx.math.GridPoint2 bulletPos = bullet.getPosition();
+        com.badlogic.gdx.math.GridPoint2 bulletDest = bullet.getDestination();
+        
+        // Check collision at current position and destination
+        com.badlogic.gdx.math.GridPoint2[] positionsToCheck = {bulletPos, bulletDest};
+        
+        for (com.badlogic.gdx.math.GridPoint2 checkPos : positionsToCheck) {
+            // Check collision with tanks
+            for (TankModel tank : entityManager.getTanks()) {
+                if (tank == bullet.getShooter()) continue; // Don't hit the shooter
+                if (!tank.isAlive()) continue;
+                
+                if (tank.getPosition().equals(checkPos) || tank.getDestination().equals(checkPos)) {
+                    tank.takeDamage(bullet.getDamage());
+                    bullet.destroy();
+                    return;
+                }
+            }
+            
+            // Check collision with obstacles
+            for (ObstacleModel obstacle : treeModels) {
+                if (obstacle.getPosition().equals(checkPos)) {
+                    bullet.destroy();
+                    return;
+                }
+            }
+            
+            // Check bounds
+            if (!bounds.contains(checkPos)) {
+                bullet.destroy();
+                return;
+            }
+            
+            // Check collision with other bullets
+            for (BulletModel otherBullet : bullets) {
+                if (otherBullet == bullet) continue;
+                if (otherBullet.isDestroyed()) continue;
+                if (otherBullet.getPosition().equals(checkPos) || otherBullet.getDestination().equals(checkPos)) {
+                    bullet.destroy();
+                    otherBullet.destroy();
+                    return;
+                }
+            }
+        }
+    }
+
+    private ru.mipt.bit.platformer.util.Direction getDirectionFromRotation(float rotation) {
+        // Match rotation to direction
+        if (Math.abs(rotation - 90f) < 0.1f) {
+            return ru.mipt.bit.platformer.util.Direction.UP;
+        } else if (Math.abs(rotation - (-90f)) < 0.1f) {
+            return ru.mipt.bit.platformer.util.Direction.DOWN;
+        } else if (Math.abs(rotation - (-180f)) < 0.1f || Math.abs(rotation - 180f) < 0.1f) {
+            return ru.mipt.bit.platformer.util.Direction.LEFT;
+        } else {
+            return ru.mipt.bit.platformer.util.Direction.RIGHT;
         }
     }
 
@@ -197,6 +366,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         treeTexture.dispose();
         playerTexture.dispose();
         if (enemyTexture != null) enemyTexture.dispose();
+        if (bulletTexture != null) bulletTexture.dispose();
         if (healthBarRenderer != null) healthBarRenderer.dispose();
         batch.dispose();
         level.dispose();
