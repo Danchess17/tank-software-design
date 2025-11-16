@@ -1,5 +1,7 @@
 package ru.mipt.bit.platformer.util.commands;
 
+import com.badlogic.gdx.math.GridPoint2;
+import ru.mipt.bit.platformer.util.Direction;
 import ru.mipt.bit.platformer.util.models.TankModel;
 import ru.mipt.bit.platformer.util.models.BulletModel;
 import ru.mipt.bit.platformer.util.models.EntityManager;
@@ -18,43 +20,29 @@ public class ShootCommand implements Command {
 
     @Override
     public void execute() {
-        // Only shoot if tank is not moving
-        if (!tank.isMovementCompleted()) {
-            return;
-        }
+        if (!tank.isMovementCompleted()) return;
 
-        // Get the direction the tank is facing based on its rotation
-        ru.mipt.bit.platformer.util.Direction shootDirection = getDirectionFromRotation(tank.getRotation());
+        Direction shootDirection = getDirectionFromRotation(tank.getRotation());
         
-        // Calculate bullet start position (next cell in the direction tank is facing)
-        com.badlogic.gdx.math.GridPoint2 bulletStart = shootDirection.applyTo(tank.getPosition());
+        GridPoint2 bulletStart = shootDirection.applyTo(tank.getPosition());
         
-        // Check if bullet start position is within bounds
-        if (!bounds.contains(bulletStart)) {
-            return;
-        }
+        if (!bounds.contains(bulletStart)) return;
 
-        // Check if there's already something at the bullet start position
-        // (edge case: enemy tank standing right next to us)
-        if (entityManager.getEntityAt(bulletStart).isPresent()) {
-            return; // Can't shoot if something is blocking the start position
-        }
+        if (entityManager.getEntityAt(bulletStart).isPresent()) return; 
 
-        // Create and register the bullet
         BulletModel bullet = new BulletModel(bulletStart, shootDirection, tank);
         entityManager.addEntity(bullet);
     }
 
-    private ru.mipt.bit.platformer.util.Direction getDirectionFromRotation(float rotation) {
-        // Match rotation to direction
+    private Direction getDirectionFromRotation(float rotation) {
         if (Math.abs(rotation - 90f) < 0.1f) {
-            return ru.mipt.bit.platformer.util.Direction.UP;
+            return Direction.UP;
         } else if (Math.abs(rotation - (-90f)) < 0.1f) {
-            return ru.mipt.bit.platformer.util.Direction.DOWN;
+            return Direction.DOWN;
         } else if (Math.abs(rotation - (-180f)) < 0.1f || Math.abs(rotation - 180f) < 0.1f) {
-            return ru.mipt.bit.platformer.util.Direction.LEFT;
+            return Direction.LEFT;
         } else {
-            return ru.mipt.bit.platformer.util.Direction.RIGHT;
+            return Direction.RIGHT;
         }
     }
 }

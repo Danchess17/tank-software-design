@@ -28,9 +28,7 @@ public class HealthBarRenderer {
         float centerX = entityBounds.x + entityBounds.width / 2f;
         float barX = centerX - BAR_WIDTH / 2f;
         float barY = entityBounds.y + entityBounds.height + BAR_OFFSET_Y;
-        
-        Color oldColor = new Color(batch.getColor());
-        
+                
         // Background
         batch.setColor(BACKGROUND_COLOR);
         batch.draw(whiteTexture, barX, barY, BAR_WIDTH, BAR_HEIGHT);

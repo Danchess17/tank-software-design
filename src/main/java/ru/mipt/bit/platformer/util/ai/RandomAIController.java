@@ -4,9 +4,9 @@ import java.util.Random;
 
 import ru.mipt.bit.platformer.util.Direction;
 
-public class RandomAIController {
+public class RandomAIController implements AIController {
     private final Random random;
-    private static final double SHOOT_PROBABILITY = 0.3; // 30% chance to shoot instead of move
+    private static final double SHOOT_PROBABILITY = 0.3;
 
     public RandomAIController() {
         this(new Random());

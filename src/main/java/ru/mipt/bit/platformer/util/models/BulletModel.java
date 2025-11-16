@@ -23,7 +23,6 @@ public class BulletModel implements MovableGameEntity {
         this.direction = direction;
         this.rotation = direction.rotation;
         this.shooter = shooter;
-        // Start at the next cell in the direction the tank is facing
         this.destination = direction.applyTo(startPosition);
         this.movementProgress = 0f;
     }
@@ -50,10 +49,8 @@ public class BulletModel implements MovableGameEntity {
 
     @Override
     public void tryMove(Direction direction, GameEntity ...entities) {
-        // Bullets always move in their set direction
         GridPoint2 next = this.direction.applyTo(position);
         
-        // Check for collisions
         for (GameEntity entity: entities) {
             if (entity.getPosition().equals(next)) {
                 destroy();
@@ -76,7 +73,6 @@ public class BulletModel implements MovableGameEntity {
         movementProgress = continueProgress(movementProgress, deltaTime, MOVEMENT_SPEED);
         if (isEqual(movementProgress, 1f) && !destroyed) {
             position.set(destination);
-            // Continue moving in the same direction
             destination.set(direction.applyTo(position));
             movementProgress = 0f;
         }
