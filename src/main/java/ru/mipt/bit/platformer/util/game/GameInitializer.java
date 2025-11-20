@@ -57,7 +57,13 @@ public class GameInitializer {
     private final HealthBarRenderer healthBarRenderer;
     private final AIController aiController;
 
-    public GameInitializer() {
+    public GameInitializer(InputHandler inputHandler, 
+                          HealthBarRenderer healthBarRenderer, 
+                          AIController aiController) {
+        this.inputHandler = inputHandler;
+        this.healthBarRenderer = healthBarRenderer;
+        this.aiController = aiController;
+        
         // Initialize level
         level = new TmxMapLoader().load("level.tmx");
         groundLayer = getSingleLayer(level);
@@ -67,11 +73,6 @@ public class GameInitializer {
         loader = new RandomGeneratorLoader(10, 8, 7, 3);
         entityManager = loader.load("entities_map.txt");
         bounds = new Bounds(groundLayer.getWidth(), groundLayer.getHeight());
-
-        // Initialize services
-        inputHandler = new InputHandler();
-        aiController = new RandomAIController();
-        healthBarRenderer = new HealthBarRenderer();
 
         // Initialize player
         playerTexture = new Texture("images/tank_blue.png");

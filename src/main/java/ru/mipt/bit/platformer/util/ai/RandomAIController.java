@@ -2,8 +2,10 @@ package ru.mipt.bit.platformer.util.ai;
 
 import java.util.Random;
 
+import org.springframework.stereotype.Component;
 import ru.mipt.bit.platformer.util.Direction;
 
+@Component
 public class RandomAIController implements AIController {
     private final Random random;
     private static final double SHOOT_PROBABILITY = 0.3;

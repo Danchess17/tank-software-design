@@ -8,6 +8,9 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import ru.mipt.bit.platformer.config.GameConfig;
 import ru.mipt.bit.platformer.util.game.*;
 import ru.mipt.bit.platformer.util.graphics.*;
 import ru.mipt.bit.platformer.util.logic.*;
@@ -19,6 +22,8 @@ import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 public class GameDesktopLauncher implements ApplicationListener {
+
+    private static ApplicationContext applicationContext;
 
     private Batch batch;
     private Renderer renderer;
@@ -34,10 +39,16 @@ public class GameDesktopLauncher implements ApplicationListener {
 
     @Override
     public void create() {
+        // Initialize Spring context
+        if (applicationContext == null) {
+            applicationContext = new AnnotationConfigApplicationContext(GameConfig.class);
+        }
+        
         batch = new SpriteBatch();
         entityRenderer = new EntityRenderer(batch);
         
-        initializer = new GameInitializer();
+        // Get GameInitializer from Spring context
+        initializer = applicationContext.getBean(GameInitializer.class);
         
         level = initializer.getLevel();
         levelRenderer = createSingleLayerMapRenderer(level, batch);

@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
+import org.springframework.stereotype.Component;
 
+@Component
 public class HealthBarRenderer {
     private static final float BAR_WIDTH = 40f;
     private static final float BAR_HEIGHT = 4f;
