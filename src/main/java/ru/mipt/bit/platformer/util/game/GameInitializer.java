@@ -7,6 +7,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Interpolation;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.mipt.bit.platformer.util.InputHandler;
 import ru.mipt.bit.platformer.util.TileMovement;
 import ru.mipt.bit.platformer.util.ai.AIController;
@@ -57,12 +58,15 @@ public class GameInitializer {
     private final HealthBarRenderer healthBarRenderer;
     private final AIController aiController;
 
+    @Autowired
     public GameInitializer(InputHandler inputHandler, 
                           HealthBarRenderer healthBarRenderer, 
-                          AIController aiController) {
+                          AIController aiController,
+                          BulletCollisionHandler bulletCollisionHandler) {
         this.inputHandler = inputHandler;
         this.healthBarRenderer = healthBarRenderer;
         this.aiController = aiController;
+        this.bulletCollisionHandler = bulletCollisionHandler;
         
         // Initialize level
         level = new TmxMapLoader().load("level.tmx");
@@ -101,7 +105,7 @@ public class GameInitializer {
         // Initialize bullets
         bulletTexture = createBulletTexture();
         bullets = new ArrayList<>();
-        bulletCollisionHandler = new BulletCollisionHandler(entityManager, bounds, treeModels, bullets);
+        // BulletCollisionHandler is now injected via constructor
     }
 
     private Texture createBulletTexture() {

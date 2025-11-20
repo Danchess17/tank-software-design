@@ -1,5 +1,7 @@
 package ru.mipt.bit.platformer.util.game;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.mipt.bit.platformer.util.InputHandler;
 import ru.mipt.bit.platformer.util.ai.AIController;
 import ru.mipt.bit.platformer.util.commands.MoveCommand;
@@ -12,29 +14,19 @@ import ru.mipt.bit.platformer.util.models.EntityManager;
 import ru.mipt.bit.platformer.util.models.TankModel;
 import ru.mipt.bit.platformer.util.Direction;
 
+@Service
 public class CommandProcessor {
     private final InputHandler inputHandler;
     private final AIController aiController;
-    private final EntityManager entityManager;
-    private final Bounds bounds;
-    private final TankModel playerModel;
-    private final TankModel[] enemyModels;
-    private final HealthBarDecorator playerHealthDecorator;
-    private final HealthBarDecorator[] enemyHealthDecorators;
+    private final GameInitializer gameInitializer;
 
-    public CommandProcessor(InputHandler inputHandler, AIController aiController,
-                           EntityManager entityManager, Bounds bounds,
-                           TankModel playerModel, TankModel[] enemyModels,
-                           HealthBarDecorator playerHealthDecorator,
-                           HealthBarDecorator[] enemyHealthDecorators) {
+    @Autowired
+    public CommandProcessor(InputHandler inputHandler, 
+                           AIController aiController,
+                           GameInitializer gameInitializer) {
         this.inputHandler = inputHandler;
         this.aiController = aiController;
-        this.entityManager = entityManager;
-        this.bounds = bounds;
-        this.playerModel = playerModel;
-        this.enemyModels = enemyModels;
-        this.playerHealthDecorator = playerHealthDecorator;
-        this.enemyHealthDecorators = enemyHealthDecorators;
+        this.gameInitializer = gameInitializer;
     }
 
     public void processInputCommands(CollisionContext collisionContext) {
@@ -43,6 +35,10 @@ public class CommandProcessor {
     }
 
     public void processAICommands(CollisionContext collisionContext) {
+        TankModel[] enemyModels = gameInitializer.getEnemyModels();
+        EntityManager entityManager = gameInitializer.getEntityManager();
+        Bounds bounds = gameInitializer.getBounds();
+        
         for (TankModel enemyModel : enemyModels) {
             if (!enemyModel.isMovementCompleted() || !enemyModel.isAlive()) continue;
 
@@ -56,6 +52,8 @@ public class CommandProcessor {
 
     private void handleHealthBarToggle() {
         if (inputHandler.isLKeyJustPressed()) {
+            HealthBarDecorator playerHealthDecorator = gameInitializer.getPlayerHealthDecorator();
+            HealthBarDecorator[] enemyHealthDecorators = gameInitializer.getEnemyHealthDecorators();
             HealthBarDecorator[] allDecorators = new HealthBarDecorator[1 + enemyHealthDecorators.length];
             allDecorators[0] = playerHealthDecorator;
             System.arraycopy(enemyHealthDecorators, 0, allDecorators, 1, enemyHealthDecorators.length);
@@ -64,6 +62,10 @@ public class CommandProcessor {
     }
 
     private void handlePlayerCommands(CollisionContext collisionContext) {
+        TankModel playerModel = gameInitializer.getPlayerModel();
+        EntityManager entityManager = gameInitializer.getEntityManager();
+        Bounds bounds = gameInitializer.getBounds();
+        
         if (!playerModel.isMovementCompleted() || !playerModel.isAlive()) return;
 
         if (inputHandler.isSpaceKeyJustPressed()) new ShootCommand(playerModel, entityManager, bounds).execute();

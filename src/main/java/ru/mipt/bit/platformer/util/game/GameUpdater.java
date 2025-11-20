@@ -1,20 +1,23 @@
 package ru.mipt.bit.platformer.util.game;
 
-import ru.mipt.bit.platformer.util.TileMovement;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.mipt.bit.platformer.util.graphics.TankView;
 
+@Service
 public class GameUpdater {
-    private final TileMovement tileMovement;
-    private final TankView playerView;
-    private final TankView[] enemyViews;
+    private final GameInitializer gameInitializer;
 
-    public GameUpdater(TileMovement tileMovement, TankView playerView, TankView[] enemyViews) {
-        this.tileMovement = tileMovement;
-        this.playerView = playerView;
-        this.enemyViews = enemyViews;
+    @Autowired
+    public GameUpdater(GameInitializer gameInitializer) {
+        this.gameInitializer = gameInitializer;
     }
 
     public void updateEntities(float deltaTime) {
+        TankView playerView = gameInitializer.getPlayerView();
+        TankView[] enemyViews = gameInitializer.getEnemyViews();
+        var tileMovement = gameInitializer.getTileMovement();
+        
         playerView.update(deltaTime, tileMovement);
         for (TankView enemyView : enemyViews) {
             enemyView.update(deltaTime, tileMovement);

@@ -47,37 +47,15 @@ public class GameDesktopLauncher implements ApplicationListener {
         batch = new SpriteBatch();
         entityRenderer = new EntityRenderer(batch);
         
-        // Get GameInitializer from Spring context
+        // Get components from Spring context
         initializer = applicationContext.getBean(GameInitializer.class);
+        commandProcessor = applicationContext.getBean(CommandProcessor.class);
+        gameUpdater = applicationContext.getBean(GameUpdater.class);
+        bulletManager = applicationContext.getBean(BulletManager.class);
         
         level = initializer.getLevel();
         levelRenderer = createSingleLayerMapRenderer(level, batch);
         renderer = new Renderer(batch, entityRenderer, levelRenderer);
-        
-        commandProcessor = new CommandProcessor(
-            initializer.getInputHandler(),
-            initializer.getAiController(),
-            initializer.getEntityManager(),
-            initializer.getBounds(),
-            initializer.getPlayerModel(),
-            initializer.getEnemyModels(),
-            initializer.getPlayerHealthDecorator(),
-            initializer.getEnemyHealthDecorators()
-        );
-        
-        gameUpdater = new GameUpdater(
-            initializer.getTileMovement(),
-            initializer.getPlayerView(),
-            initializer.getEnemyViews()
-        );
-        
-        bulletManager = new BulletManager(
-            initializer.getEntityManager(),
-            initializer.getBulletCollisionHandler(),
-            initializer.getBulletTexture(),
-            initializer.getTileMovement(),
-            initializer.getBullets()
-        );
     }
 
     @Override

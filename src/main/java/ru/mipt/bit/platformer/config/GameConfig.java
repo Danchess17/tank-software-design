@@ -8,6 +8,7 @@ import ru.mipt.bit.platformer.util.InputHandler;
 import ru.mipt.bit.platformer.util.ai.AIController;
 import ru.mipt.bit.platformer.util.game.GameInitializer;
 import ru.mipt.bit.platformer.util.graphics.HealthBarRenderer;
+import ru.mipt.bit.platformer.util.logic.BulletCollisionHandler;
 
 @Configuration
 @ComponentScan(basePackages = "ru.mipt.bit.platformer.util")
@@ -22,8 +23,9 @@ public class GameConfig {
     @Autowired
     public GameInitializer gameInitializer(InputHandler inputHandler, 
                                           HealthBarRenderer healthBarRenderer, 
-                                          AIController aiController) {
-        return new GameInitializer(inputHandler, healthBarRenderer, aiController);
+                                          AIController aiController,
+                                          BulletCollisionHandler bulletCollisionHandler) {
+        return new GameInitializer(inputHandler, healthBarRenderer, aiController, bulletCollisionHandler);
     }
 }
 
