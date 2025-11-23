@@ -13,17 +13,17 @@ import ru.mipt.bit.platformer.util.Direction;
 public class CommandProcessor {
     private final InputHandler inputHandler;
     private final AIController aiController;
-    private final GameInitializer gameInitializer;
+    private final EntityRegistry entityRegistry;
     private final CommandFactory commandFactory;
 
     @Autowired
     public CommandProcessor(InputHandler inputHandler, 
                            AIController aiController,
-                           GameInitializer gameInitializer,
+                           EntityRegistry entityRegistry,
                            CommandFactory commandFactory) {
         this.inputHandler = inputHandler;
         this.aiController = aiController;
-        this.gameInitializer = gameInitializer;
+        this.entityRegistry = entityRegistry;
         this.commandFactory = commandFactory;
     }
 
@@ -33,7 +33,7 @@ public class CommandProcessor {
     }
 
     public void processAICommands(CollisionContext collisionContext) {
-        TankModel[] enemyModels = gameInitializer.getEnemyModels();
+        TankModel[] enemyModels = entityRegistry.getEnemyModels();
         
         for (TankModel enemyModel : enemyModels) {
             if (!enemyModel.isMovementCompleted() || !enemyModel.isAlive()) continue;
@@ -49,8 +49,8 @@ public class CommandProcessor {
 
     private void handleHealthBarToggle() {
         if (inputHandler.isLKeyJustPressed()) {
-            HealthBarView playerHealthBarView = gameInitializer.getPlayerHealthBarView();
-            HealthBarView[] enemyHealthBarViews = gameInitializer.getEnemyHealthBarViews();
+            HealthBarView playerHealthBarView = entityRegistry.getPlayerHealthBarView();
+            HealthBarView[] enemyHealthBarViews = entityRegistry.getEnemyHealthBarViews();
             HealthBarView[] allHealthBarViews = new HealthBarView[1 + enemyHealthBarViews.length];
             allHealthBarViews[0] = playerHealthBarView;
             System.arraycopy(enemyHealthBarViews, 0, allHealthBarViews, 1, enemyHealthBarViews.length);
@@ -59,7 +59,7 @@ public class CommandProcessor {
     }
 
     private void handlePlayerCommands(CollisionContext collisionContext) {
-        TankModel playerModel = gameInitializer.getPlayerModel();
+        TankModel playerModel = entityRegistry.getPlayerModel();
         
         if (!playerModel.isMovementCompleted() || !playerModel.isAlive()) return;
 

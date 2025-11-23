@@ -9,7 +9,6 @@ import ru.mipt.bit.platformer.util.logic.BulletCollisionHandler;
 import ru.mipt.bit.platformer.util.models.BulletModel;
 import ru.mipt.bit.platformer.util.models.EntityManager;
 import ru.mipt.bit.platformer.util.models.GameEntity;
-import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,18 +16,21 @@ import java.util.stream.Collectors;
 
 @Service
 public class BulletManager {
-    private final GameInitializer gameInitializer;
     private final EntityManager entityManager;
     private final BulletCollisionHandler bulletCollisionHandler;
+    private final ResourceManager resourceManager;
+    private final TileMovement tileMovement;
     private final List<BulletView> bulletViews;
 
     @Autowired
-    public BulletManager(GameInitializer gameInitializer,
-                        EntityManager entityManager,
-                        BulletCollisionHandler bulletCollisionHandler) {
-        this.gameInitializer = gameInitializer;
+    public BulletManager(EntityManager entityManager,
+                        BulletCollisionHandler bulletCollisionHandler,
+                        ResourceManager resourceManager,
+                        TileMovement tileMovement) {
         this.entityManager = entityManager;
         this.bulletCollisionHandler = bulletCollisionHandler;
+        this.resourceManager = resourceManager;
+        this.tileMovement = tileMovement;
         this.bulletViews = new ArrayList<>();
     }
 
@@ -69,8 +71,7 @@ public class BulletManager {
     }
 
     private void updateBulletViews(List<BulletModel> bullets, float deltaTime) {
-        var bulletTexture = gameInitializer.getBulletTexture();
-        var tileMovement = gameInitializer.getTileMovement();
+        var bulletTexture = resourceManager.getBulletTexture();
         
         bulletViews.clear();
         for (BulletModel bullet : bullets) {

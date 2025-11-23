@@ -5,9 +5,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.MapRenderer;
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.mipt.bit.platformer.config.GameConfig;
@@ -19,7 +16,6 @@ import ru.mipt.bit.platformer.util.models.*;
 import java.util.Arrays;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
-import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 public class GameDesktopLauncher implements ApplicationListener {
 
@@ -27,15 +23,13 @@ public class GameDesktopLauncher implements ApplicationListener {
 
     private Batch batch;
     private Renderer renderer;
-    private EntityRenderer entityRenderer;
 
     private GameInitializer initializer;
+    private EntityRegistry entityRegistry;
+    private EntityManager entityManager;
     private CommandProcessor commandProcessor;
     private GameUpdater gameUpdater;
     private BulletManager bulletManager;
-
-    private TiledMap level;
-    private MapRenderer levelRenderer;
 
     @Override
     public void create() {
@@ -44,18 +38,16 @@ public class GameDesktopLauncher implements ApplicationListener {
             applicationContext = new AnnotationConfigApplicationContext(GameConfig.class);
         }
         
-        batch = new SpriteBatch();
-        entityRenderer = new EntityRenderer(batch);
+        // Get all components from Spring context
+        batch = applicationContext.getBean(Batch.class);
+        renderer = applicationContext.getBean(Renderer.class);
         
-        // Get components from Spring context
         initializer = applicationContext.getBean(GameInitializer.class);
+        entityRegistry = applicationContext.getBean(EntityRegistry.class);
+        entityManager = applicationContext.getBean(EntityManager.class);
         commandProcessor = applicationContext.getBean(CommandProcessor.class);
         gameUpdater = applicationContext.getBean(GameUpdater.class);
         bulletManager = applicationContext.getBean(BulletManager.class);
-        
-        level = initializer.getLevel();
-        levelRenderer = createSingleLayerMapRenderer(level, batch);
-        renderer = new Renderer(batch, entityRenderer, levelRenderer);
     }
 
     @Override
@@ -71,11 +63,11 @@ public class GameDesktopLauncher implements ApplicationListener {
         
         renderer.renderLevel();
         renderer.renderAllEntities(
-            initializer.getPlayerView(),
-            initializer.getEnemyViews(),
-            initializer.getPlayerHealthBarView(),
-            initializer.getEnemyHealthBarViews(),
-            initializer.getTreeViews(),
+            entityRegistry.getPlayerView(),
+            entityRegistry.getEnemyViews(),
+            entityRegistry.getPlayerHealthBarView(),
+            entityRegistry.getEnemyHealthBarViews(),
+            entityRegistry.getTreeViews(),
             bulletManager.getBulletViews()
         );
     }
@@ -86,8 +78,8 @@ public class GameDesktopLauncher implements ApplicationListener {
     }
 
     private CollisionContext buildCollisionContext() {
-        GameEntity[] staticEntities = initializer.getTreeModels();
-        MovableGameEntity[] movers = initializer.getEntityManager().getMovableEntities();
+        GameEntity[] staticEntities = entityRegistry.getTreeModels();
+        MovableGameEntity[] movers = entityManager.getMovableEntities();
         return new CollisionContext(Arrays.asList(staticEntities), Arrays.asList(movers));
     }
 
