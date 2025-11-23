@@ -1,10 +1,12 @@
 package ru.mipt.bit.platformer.util.models;
 
+import org.springframework.stereotype.Component;
 import com.badlogic.gdx.math.GridPoint2;
 import java.util.ArrayList;
 import java.util.List;
 import com.badlogic.gdx.Gdx;
 
+@Component
 public class LevelFromFileLoader implements MapLoader {
 
     @Override

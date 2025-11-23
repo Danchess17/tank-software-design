@@ -1,16 +1,25 @@
 package ru.mipt.bit.platformer.util.models;
 
+import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.badlogic.gdx.math.GridPoint2;
 
-
+@Component
 public class EntityManager {
     private GameEntity[] entities;
 
+    public EntityManager() {
+        this.entities = new GameEntity[0];
+    }
+
     public EntityManager(GameEntity ... entities) {
+        this.entities = entities;
+    }
+    
+    public void initialize(GameEntity ... entities) {
         this.entities = entities;
     }
 

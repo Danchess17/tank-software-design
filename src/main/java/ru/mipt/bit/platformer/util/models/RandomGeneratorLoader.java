@@ -1,30 +1,29 @@
 package ru.mipt.bit.platformer.util.models;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import com.badlogic.gdx.math.GridPoint2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Component
+@Primary
 public class RandomGeneratorLoader implements MapLoader {
     private final Random random = new Random();
-    private final int levelWidth;
-    private final int levelHeight;
-    private final int obstacleCount;
-    private final int aiTankCount;
     
-    public RandomGeneratorLoader(int levelWidth, int levelHeight, int obstacleCount) {
-        this.levelWidth = levelWidth;
-        this.levelHeight = levelHeight;
-        this.obstacleCount = obstacleCount;
-        this.aiTankCount = 0;
-    }
-
-    public RandomGeneratorLoader(int levelWidth, int levelHeight, int obstacleCount, int aiTankCount) {
-        this.levelWidth = levelWidth;
-        this.levelHeight = levelHeight;
-        this.obstacleCount = obstacleCount;
-        this.aiTankCount = aiTankCount;
-    }
+    @Value("${game.level.width:10}")
+    private int levelWidth;
+    
+    @Value("${game.level.height:8}")
+    private int levelHeight;
+    
+    @Value("${game.obstacles.count:7}")
+    private int obstacleCount;
+    
+    @Value("${game.enemies.count:3}")
+    private int aiTankCount;
     
     @Override
     public EntityManager load(String path) {

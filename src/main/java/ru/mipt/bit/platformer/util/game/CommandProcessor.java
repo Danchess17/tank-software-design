@@ -19,14 +19,17 @@ public class CommandProcessor {
     private final InputHandler inputHandler;
     private final AIController aiController;
     private final GameInitializer gameInitializer;
+    private final CommandFactory commandFactory;
 
     @Autowired
     public CommandProcessor(InputHandler inputHandler, 
                            AIController aiController,
-                           GameInitializer gameInitializer) {
+                           GameInitializer gameInitializer,
+                           CommandFactory commandFactory) {
         this.inputHandler = inputHandler;
         this.aiController = aiController;
         this.gameInitializer = gameInitializer;
+        this.commandFactory = commandFactory;
     }
 
     public void processInputCommands(CollisionContext collisionContext) {
@@ -36,16 +39,15 @@ public class CommandProcessor {
 
     public void processAICommands(CollisionContext collisionContext) {
         TankModel[] enemyModels = gameInitializer.getEnemyModels();
-        EntityManager entityManager = gameInitializer.getEntityManager();
-        Bounds bounds = gameInitializer.getBounds();
         
         for (TankModel enemyModel : enemyModels) {
             if (!enemyModel.isMovementCompleted() || !enemyModel.isAlive()) continue;
 
-            if (aiController.shouldShoot()) new ShootCommand(enemyModel, entityManager, bounds).execute();
-            else {
+            if (aiController.shouldShoot()) {
+                commandFactory.createShootCommand(enemyModel).execute();
+            } else {
                 Direction dir = aiController.chooseDirection();
-                new MoveCommand(enemyModel, dir, bounds, collisionContext).execute();
+                commandFactory.createMoveCommand(enemyModel, dir, collisionContext).execute();
             }
         }
     }
@@ -57,23 +59,23 @@ public class CommandProcessor {
             HealthBarDecorator[] allDecorators = new HealthBarDecorator[1 + enemyHealthDecorators.length];
             allDecorators[0] = playerHealthDecorator;
             System.arraycopy(enemyHealthDecorators, 0, allDecorators, 1, enemyHealthDecorators.length);
-            new ToggleHealthBarCommand(allDecorators).execute();
+            commandFactory.createToggleHealthBarCommand(allDecorators).execute();
         }
     }
 
     private void handlePlayerCommands(CollisionContext collisionContext) {
         TankModel playerModel = gameInitializer.getPlayerModel();
-        EntityManager entityManager = gameInitializer.getEntityManager();
-        Bounds bounds = gameInitializer.getBounds();
         
         if (!playerModel.isMovementCompleted() || !playerModel.isAlive()) return;
 
-        if (inputHandler.isSpaceKeyJustPressed()) new ShootCommand(playerModel, entityManager, bounds).execute();
-        else {
+        if (inputHandler.isSpaceKeyJustPressed()) {
+            commandFactory.createShootCommand(playerModel).execute();
+        } else {
             Direction direction = inputHandler.chooseDirection();
-            new MoveCommand(playerModel, direction, bounds, collisionContext).execute();
+            if (direction != null) {
+                commandFactory.createMoveCommand(playerModel, direction, collisionContext).execute();
+            }
         }
-
     }
 }
 
