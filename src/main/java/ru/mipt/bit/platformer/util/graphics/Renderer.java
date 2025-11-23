@@ -22,36 +22,37 @@ public class Renderer {
         levelRenderer.render();
     }
 
-    public void renderAllEntities(HealthBarDecorator playerHealthDecorator,
-                                 HealthBarDecorator[] enemyHealthDecorators,
+    public void renderAllEntities(TankView playerView,
+                                 TankView[] enemyViews,
+                                 HealthBarView playerHealthBarView,
+                                 HealthBarView[] enemyHealthBarViews,
                                  ObstacleView[] treeViews,
                                  List<BulletView> bulletViews) {
+        // Collect all renderables (entities)
         List<Renderable> allRenderables = new ArrayList<>();
-        allRenderables.add(playerHealthDecorator);
-        allRenderables.addAll(Arrays.asList(enemyHealthDecorators));
+        allRenderables.add(playerView);
+        allRenderables.addAll(Arrays.asList(enemyViews));
         allRenderables.addAll(Arrays.asList(treeViews));
         allRenderables.addAll(bulletViews);
         
+        // Render all entities first
         Renderable[] renderablesArray = allRenderables.toArray(new Renderable[allRenderables.size()]);
         entityRenderer.render(renderablesArray);
-    }
-
-    public void renderHealthBars(HealthBarDecorator playerHealthDecorator,
-                                HealthBarDecorator[] enemyHealthDecorators) {
-        List<HealthBarDecorator> allDecorators = new ArrayList<>();
-        allDecorators.add(playerHealthDecorator);
-        allDecorators.addAll(Arrays.asList(enemyHealthDecorators));
         
-        if (allDecorators.isEmpty()) return;
-
-        boolean shouldRender = allDecorators.stream().anyMatch(HealthBarDecorator::isShowHealthBar);
-        if (!shouldRender) return;
-
-        batch.begin();
-        for (HealthBarDecorator decorator : allDecorators) {
-            decorator.renderHealthBar(batch);
+        // Render health bars on top of all entities (if any are enabled)
+        List<HealthBarView> healthBarViewsList = new ArrayList<>();
+        healthBarViewsList.add(playerHealthBarView);
+        healthBarViewsList.addAll(Arrays.asList(enemyHealthBarViews));
+        
+        boolean shouldRenderHealthBars = healthBarViewsList.stream()
+                .anyMatch(view -> view.getModel().isVisible());
+        if (shouldRenderHealthBars) {
+            batch.begin();
+            for (HealthBarView healthBarView : healthBarViewsList) {
+                healthBarView.render(batch);
+            }
+            batch.end();
         }
-        batch.end();
     }
 }
 

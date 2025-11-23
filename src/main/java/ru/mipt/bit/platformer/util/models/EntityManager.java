@@ -67,6 +67,7 @@ public class EntityManager {
     public Optional<GameEntity> getEntityAt(GridPoint2 position) {
         return Arrays.stream(entities)
                 .filter(entity -> entity.getPosition().equals(position))
+                .filter(GameEntity::isCollidable) // Only return collidable entities
                 .findFirst();
     }
 

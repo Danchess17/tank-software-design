@@ -4,10 +4,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.mipt.bit.platformer.util.graphics.HealthBarDecorator;
 import ru.mipt.bit.platformer.util.graphics.HealthBarRenderer;
+import ru.mipt.bit.platformer.util.graphics.HealthBarView;
 import ru.mipt.bit.platformer.util.graphics.ObstacleView;
 import ru.mipt.bit.platformer.util.graphics.TankView;
+import ru.mipt.bit.platformer.util.models.HealthBarModel;
 import ru.mipt.bit.platformer.util.models.ObstacleModel;
 import ru.mipt.bit.platformer.util.models.TankModel;
 
@@ -26,8 +27,9 @@ public class EntityFactory {
         return new TankView(tankModel, texture);
     }
 
-    public HealthBarDecorator createHealthBarDecorator(TankView tankView, TankModel tankModel) {
-        return new HealthBarDecorator(tankView, tankModel, healthBarRenderer);
+    public HealthBarView createHealthBarView(TankView tankView, TankModel tankModel) {
+        HealthBarModel healthBarModel = new HealthBarModel(tankModel.getHealthPercentage(), tankModel);
+        return new HealthBarView(healthBarModel, healthBarRenderer, tankView.getBounds(), tankModel);
     }
 
     public ObstacleView[] createObstacleViews(ObstacleModel[] obstacleModels, Texture texture, TiledMapTileLayer groundLayer) {
@@ -36,12 +38,13 @@ public class EntityFactory {
                 .toArray(ObstacleView[]::new);
     }
 
-    public HealthBarDecorator[] createEnemyHealthDecorators(TankView[] enemyViews, TankModel[] enemyModels) {
-        HealthBarDecorator[] decorators = new HealthBarDecorator[enemyViews.length];
+    public HealthBarView[] createEnemyHealthBarViews(TankView[] enemyViews, TankModel[] enemyModels) {
+        HealthBarView[] healthBarViews = new HealthBarView[enemyViews.length];
         for (int i = 0; i < enemyViews.length; i++) {
-            decorators[i] = createHealthBarDecorator(enemyViews[i], enemyModels[i]);
+            healthBarViews[i] = createHealthBarView(enemyViews[i], enemyModels[i]);
         }
-        return decorators;
+        return healthBarViews;
     }
 }
+
 

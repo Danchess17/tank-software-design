@@ -71,14 +71,12 @@ public class GameDesktopLauncher implements ApplicationListener {
         
         renderer.renderLevel();
         renderer.renderAllEntities(
-            initializer.getPlayerHealthDecorator(),
-            initializer.getEnemyHealthDecorators(),
+            initializer.getPlayerView(),
+            initializer.getEnemyViews(),
+            initializer.getPlayerHealthBarView(),
+            initializer.getEnemyHealthBarViews(),
             initializer.getTreeViews(),
             bulletManager.getBulletViews()
-        );
-        renderer.renderHealthBars(
-            initializer.getPlayerHealthDecorator(),
-            initializer.getEnemyHealthDecorators()
         );
     }
 

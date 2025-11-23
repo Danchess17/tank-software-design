@@ -8,7 +8,7 @@ import ru.mipt.bit.platformer.util.Direction;
 import ru.mipt.bit.platformer.util.commands.MoveCommand;
 import ru.mipt.bit.platformer.util.commands.ShootCommand;
 import ru.mipt.bit.platformer.util.commands.ToggleHealthBarCommand;
-import ru.mipt.bit.platformer.util.graphics.HealthBarDecorator;
+import ru.mipt.bit.platformer.util.graphics.HealthBarView;
 import ru.mipt.bit.platformer.util.logic.Bounds;
 import ru.mipt.bit.platformer.util.logic.CollisionContext;
 import ru.mipt.bit.platformer.util.models.EntityManager;
@@ -35,8 +35,8 @@ public class CommandFactory {
         return new MoveCommand(entity, direction, bounds, collisionContext);
     }
 
-    public ToggleHealthBarCommand createToggleHealthBarCommand(HealthBarDecorator[] decorators) {
-        return new ToggleHealthBarCommand(decorators);
+    public ToggleHealthBarCommand createToggleHealthBarCommand(HealthBarView[] healthBarViews) {
+        return new ToggleHealthBarCommand(healthBarViews);
     }
 }
 

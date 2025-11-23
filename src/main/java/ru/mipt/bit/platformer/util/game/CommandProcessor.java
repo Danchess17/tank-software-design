@@ -4,13 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mipt.bit.platformer.util.InputHandler;
 import ru.mipt.bit.platformer.util.ai.AIController;
-import ru.mipt.bit.platformer.util.commands.MoveCommand;
-import ru.mipt.bit.platformer.util.commands.ShootCommand;
-import ru.mipt.bit.platformer.util.commands.ToggleHealthBarCommand;
-import ru.mipt.bit.platformer.util.graphics.HealthBarDecorator;
-import ru.mipt.bit.platformer.util.logic.Bounds;
+import ru.mipt.bit.platformer.util.graphics.HealthBarView;
 import ru.mipt.bit.platformer.util.logic.CollisionContext;
-import ru.mipt.bit.platformer.util.models.EntityManager;
 import ru.mipt.bit.platformer.util.models.TankModel;
 import ru.mipt.bit.platformer.util.Direction;
 
@@ -54,12 +49,12 @@ public class CommandProcessor {
 
     private void handleHealthBarToggle() {
         if (inputHandler.isLKeyJustPressed()) {
-            HealthBarDecorator playerHealthDecorator = gameInitializer.getPlayerHealthDecorator();
-            HealthBarDecorator[] enemyHealthDecorators = gameInitializer.getEnemyHealthDecorators();
-            HealthBarDecorator[] allDecorators = new HealthBarDecorator[1 + enemyHealthDecorators.length];
-            allDecorators[0] = playerHealthDecorator;
-            System.arraycopy(enemyHealthDecorators, 0, allDecorators, 1, enemyHealthDecorators.length);
-            commandFactory.createToggleHealthBarCommand(allDecorators).execute();
+            HealthBarView playerHealthBarView = gameInitializer.getPlayerHealthBarView();
+            HealthBarView[] enemyHealthBarViews = gameInitializer.getEnemyHealthBarViews();
+            HealthBarView[] allHealthBarViews = new HealthBarView[1 + enemyHealthBarViews.length];
+            allHealthBarViews[0] = playerHealthBarView;
+            System.arraycopy(enemyHealthBarViews, 0, allHealthBarViews, 1, enemyHealthBarViews.length);
+            commandFactory.createToggleHealthBarCommand(allHealthBarViews).execute();
         }
     }
 

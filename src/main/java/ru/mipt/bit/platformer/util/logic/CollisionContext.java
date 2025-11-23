@@ -26,6 +26,8 @@ public class CollisionContext {
                 blocks.add(wrapPosition(e.getDestination()));
             }
         }
+        // Exclude non-collidable entities (e.g., UI elements like health bars)
+        blocks.removeIf(b -> !b.isCollidable());
         // remove actor's own entries; actor can leave its own current cell and go to destination if free
         GridPoint2 actorPos = actor.getPosition();
         GridPoint2 actorDest = actor.getDestination();
@@ -40,6 +42,7 @@ public class CollisionContext {
         };
     }
 }
+
 
 
 

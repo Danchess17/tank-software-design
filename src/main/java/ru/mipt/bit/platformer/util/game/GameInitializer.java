@@ -30,13 +30,13 @@ public class GameInitializer implements InitializingBean {
     private Texture playerTexture;
     private TankModel playerModel;
     private TankView playerView;
-    private HealthBarDecorator playerHealthDecorator;
+    private HealthBarView playerHealthBarView;
 
     // Enemies
     private Texture enemyTexture;
     private TankModel[] enemyModels;
     private TankView[] enemyViews;
-    private HealthBarDecorator[] enemyHealthDecorators;
+    private HealthBarView[] enemyHealthBarViews;
 
     // Obstacles
     private Texture treeTexture;
@@ -103,7 +103,7 @@ public class GameInitializer implements InitializingBean {
         playerTexture = textureFactory.createPlayerTexture();
         playerModel = entityManager.getTanks().get(0);
         playerView = entityFactory.createTankView(playerModel, playerTexture);
-        playerHealthDecorator = entityFactory.createHealthBarDecorator(playerView, playerModel);
+        playerHealthBarView = entityFactory.createHealthBarView(playerView, playerModel);
 
         // Initialize obstacles using factories
         treeTexture = textureFactory.createTreeTexture();
@@ -116,7 +116,7 @@ public class GameInitializer implements InitializingBean {
         enemyViews = Arrays.stream(enemyModels)
                 .map(enemyModel -> entityFactory.createTankView(enemyModel, enemyTexture))
                 .toArray(TankView[]::new);
-        enemyHealthDecorators = entityFactory.createEnemyHealthDecorators(enemyViews, enemyModels);
+        enemyHealthBarViews = entityFactory.createEnemyHealthBarViews(enemyViews, enemyModels);
 
         // Initialize bullets using TextureFactory
         bulletTexture = textureFactory.createBulletTexture();
@@ -142,10 +142,10 @@ public class GameInitializer implements InitializingBean {
     }
     public TankModel getPlayerModel() { return playerModel; }
     public TankView getPlayerView() { return playerView; }
-    public HealthBarDecorator getPlayerHealthDecorator() { return playerHealthDecorator; }
+    public HealthBarView getPlayerHealthBarView() { return playerHealthBarView; }
     public TankModel[] getEnemyModels() { return enemyModels; }
     public TankView[] getEnemyViews() { return enemyViews; }
-    public HealthBarDecorator[] getEnemyHealthDecorators() { return enemyHealthDecorators; }
+    public HealthBarView[] getEnemyHealthBarViews() { return enemyHealthBarViews; }
     public ObstacleModel[] getTreeModels() { return treeModels; }
     public ObstacleView[] getTreeViews() { return treeViews; }
     public Texture getBulletTexture() { return bulletTexture; }
