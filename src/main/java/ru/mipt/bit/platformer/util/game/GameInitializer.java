@@ -11,7 +11,6 @@ import ru.mipt.bit.platformer.util.TileMovement;
 import ru.mipt.bit.platformer.util.ai.AIController;
 import ru.mipt.bit.platformer.util.graphics.*;
 import ru.mipt.bit.platformer.util.logic.Bounds;
-import ru.mipt.bit.platformer.util.logic.BulletCollisionHandler;
 import ru.mipt.bit.platformer.util.models.*;
 
 import java.util.ArrayList;
@@ -46,7 +45,6 @@ public class GameInitializer implements InitializingBean {
     // Bullets
     private Texture bulletTexture;
     private List<BulletModel> bullets;
-    private final BulletCollisionHandler bulletCollisionHandler;
 
     // Services
     private final InputHandler inputHandler;
@@ -60,7 +58,6 @@ public class GameInitializer implements InitializingBean {
     public GameInitializer(InputHandler inputHandler, 
                           HealthBarRenderer healthBarRenderer, 
                           AIController aiController,
-                          BulletCollisionHandler bulletCollisionHandler,
                           MapLoader mapLoader,
                           EntityManager entityManager,
                           TextureFactory textureFactory,
@@ -69,7 +66,6 @@ public class GameInitializer implements InitializingBean {
         this.inputHandler = inputHandler;
         this.healthBarRenderer = healthBarRenderer;
         this.aiController = aiController;
-        this.bulletCollisionHandler = bulletCollisionHandler;
         this.loader = mapLoader;
         this.textureFactory = textureFactory;
         this.entityFactory = entityFactory;
@@ -150,7 +146,6 @@ public class GameInitializer implements InitializingBean {
     public ObstacleView[] getTreeViews() { return treeViews; }
     public Texture getBulletTexture() { return bulletTexture; }
     public List<BulletModel> getBullets() { return bullets; }
-    public BulletCollisionHandler getBulletCollisionHandler() { return bulletCollisionHandler; }
     public InputHandler getInputHandler() { return inputHandler; }
     public HealthBarRenderer getHealthBarRenderer() { return healthBarRenderer; }
     public AIController getAiController() { return aiController; }

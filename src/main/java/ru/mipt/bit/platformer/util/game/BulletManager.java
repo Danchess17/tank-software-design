@@ -2,11 +2,14 @@ package ru.mipt.bit.platformer.util.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.mipt.bit.platformer.util.TileMovement;
 import ru.mipt.bit.platformer.util.graphics.BulletView;
 import ru.mipt.bit.platformer.util.logic.CollisionContext;
+import ru.mipt.bit.platformer.util.logic.BulletCollisionHandler;
 import ru.mipt.bit.platformer.util.models.BulletModel;
 import ru.mipt.bit.platformer.util.models.EntityManager;
 import ru.mipt.bit.platformer.util.models.GameEntity;
+import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,19 +18,24 @@ import java.util.stream.Collectors;
 @Service
 public class BulletManager {
     private final GameInitializer gameInitializer;
+    private final EntityManager entityManager;
+    private final BulletCollisionHandler bulletCollisionHandler;
     private final List<BulletView> bulletViews;
 
     @Autowired
-    public BulletManager(GameInitializer gameInitializer) {
+    public BulletManager(GameInitializer gameInitializer,
+                        EntityManager entityManager,
+                        BulletCollisionHandler bulletCollisionHandler) {
         this.gameInitializer = gameInitializer;
+        this.entityManager = entityManager;
+        this.bulletCollisionHandler = bulletCollisionHandler;
         this.bulletViews = new ArrayList<>();
     }
 
     public void update(float deltaTime, CollisionContext collisionContext) {
-        EntityManager entityManager = gameInitializer.getEntityManager();
         List<BulletModel> allBullets = entityManager.getEntitiesByType(BulletModel.class);
         
-        removeDestroyedBullets(allBullets, entityManager);
+        removeDestroyedBullets(allBullets);
         // Filter out destroyed bullets for processing
         List<BulletModel> activeBullets = allBullets.stream()
                 .filter(bullet -> !bullet.isDestroyed())
@@ -41,15 +49,13 @@ public class BulletManager {
         return bulletViews;
     }
 
-    private void removeDestroyedBullets(List<BulletModel> allBullets, EntityManager entityManager) {
+    private void removeDestroyedBullets(List<BulletModel> allBullets) {
         for (BulletModel bullet : allBullets) {
             if (bullet.isDestroyed()) entityManager.removeEntity(bullet);
         }
     }
 
     private void processBulletMovement(List<BulletModel> bullets, float deltaTime, CollisionContext collisionContext) {
-        var bulletCollisionHandler = gameInitializer.getBulletCollisionHandler();
-        
         for (BulletModel bullet : bullets) {
             bullet.update(deltaTime);
             

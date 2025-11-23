@@ -2,9 +2,7 @@ package ru.mipt.bit.platformer.util.logic;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import ru.mipt.bit.platformer.util.game.GameInitializer;
 import ru.mipt.bit.platformer.util.models.BulletModel;
 import ru.mipt.bit.platformer.util.models.EntityManager;
 import ru.mipt.bit.platformer.util.models.ObstacleModel;
@@ -14,11 +12,13 @@ import java.util.List;
 
 @Component
 public class BulletCollisionHandler {
-    private final GameInitializer gameInitializer;
+    private final EntityManager entityManager;
+    private final Bounds bounds;
 
     @Autowired
-    public BulletCollisionHandler(@Lazy GameInitializer gameInitializer) {
-        this.gameInitializer = gameInitializer;
+    public BulletCollisionHandler(EntityManager entityManager, Bounds bounds) {
+        this.entityManager = entityManager;
+        this.bounds = bounds;
     }
 
     public void checkCollisions(BulletModel bullet) {
@@ -35,7 +35,6 @@ public class BulletCollisionHandler {
     }
 
     private boolean checkTankCollision(BulletModel bullet, GridPoint2 checkPos) {
-        EntityManager entityManager = gameInitializer.getEntityManager();
         for (TankModel tank : entityManager.getTanks()) {
             if (tank == bullet.getShooter() || !tank.isAlive()) continue;
 
@@ -49,7 +48,7 @@ public class BulletCollisionHandler {
     }
 
     private boolean checkObstacleCollision(BulletModel bullet, GridPoint2 checkPos) {
-        ObstacleModel[] obstacles = gameInitializer.getTreeModels();
+        List<ObstacleModel> obstacles = entityManager.getObstacles();
         for (ObstacleModel obstacle : obstacles) {
             if (obstacle.getPosition().equals(checkPos)) {
                 bullet.destroy();
@@ -60,7 +59,6 @@ public class BulletCollisionHandler {
     }
 
     private boolean checkBoundsCollision(BulletModel bullet, GridPoint2 checkPos) {
-        Bounds bounds = gameInitializer.getBounds();
         if (!bounds.contains(checkPos)) {
             bullet.destroy();
             return true;
@@ -69,7 +67,6 @@ public class BulletCollisionHandler {
     }
 
     private boolean checkBulletToBulletCollision(BulletModel bullet, GridPoint2 checkPos) {
-        EntityManager entityManager = gameInitializer.getEntityManager();
         List<BulletModel> activeBullets = entityManager.getEntitiesByType(BulletModel.class);
         for (BulletModel otherBullet : activeBullets) {
             if (otherBullet == bullet || otherBullet.isDestroyed()) continue;

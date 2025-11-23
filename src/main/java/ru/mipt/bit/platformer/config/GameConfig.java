@@ -11,7 +11,6 @@ import ru.mipt.bit.platformer.util.ai.AIController;
 import ru.mipt.bit.platformer.util.game.GameInitializer;
 import ru.mipt.bit.platformer.util.graphics.HealthBarRenderer;
 import ru.mipt.bit.platformer.util.logic.Bounds;
-import ru.mipt.bit.platformer.util.logic.BulletCollisionHandler;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Interpolation;
 
@@ -49,14 +48,13 @@ public class GameConfig {
     public GameInitializer gameInitializer(InputHandler inputHandler, 
                                           HealthBarRenderer healthBarRenderer, 
                                           AIController aiController,
-                                          BulletCollisionHandler bulletCollisionHandler,
                                           ru.mipt.bit.platformer.util.models.MapLoader mapLoader,
                                           ru.mipt.bit.platformer.util.models.EntityManager entityManager,
                                           ru.mipt.bit.platformer.util.game.TextureFactory textureFactory,
                                           ru.mipt.bit.platformer.util.game.EntityFactory entityFactory,
                                           ru.mipt.bit.platformer.util.game.LevelLoader levelLoader) {
         return new GameInitializer(inputHandler, healthBarRenderer, aiController, 
-                                 bulletCollisionHandler, mapLoader, entityManager,
+                                 mapLoader, entityManager,
                                  textureFactory, entityFactory, levelLoader);
     }
 }
